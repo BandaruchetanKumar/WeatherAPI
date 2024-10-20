@@ -11,6 +11,10 @@ def fetch_weather_data(city):
         'appid': config.API_KEY,
         'units': 'metric'  # Return temperature in Celsius
     }
+    if config.TEMP_UNIT == 'fahrenheit':
+        params['units'] = 'imperial'  # Return temperature in Fahrenheit
+    elif config.TEMP_UNIT == 'kelvin':
+        params['units'] = 'standard'  # Return temperature in Kelvin
     try:
         response = requests.get(config.BASE_URL, params=params)
         response.raise_for_status()  # Raise an exception for 4XX/5XX errors

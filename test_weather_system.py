@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 import visualizations  # Ensure your visualizations module is correctly imported
+import config
+import weather_monitoring
 
 class TestWeatherMonitoringSystem(unittest.TestCase):
 
@@ -20,6 +22,30 @@ class TestWeatherMonitoringSystem(unittest.TestCase):
         # Assert that the mocked functions were called
         mock_plot_temperature_trends.assert_called_once()
         mock_plot_weather_conditions.assert_called_once()
+
+    def test_system_setup(self):
+        # Test system setup and API key connection
+        self.assertIsNotNone(config.API_KEY)
+        self.assertIsNotNone(config.MONGO_URI)
+        self.assertIsNotNone(config.DB_NAME)
+
+    def test_data_retrieval(self):
+        # Test data retrieval from OpenWeatherMap API
+        with patch('weather_monitoring.fetch_weather_data') as mock_fetch:
+            mock_fetch.return_value = {
+                'weather': [{'main': 'Clear'}],
+                'main': {'temp': 300, 'feels_like': 303},
+                'dt': 1609459200
+            }
+            data = weather_monitoring.fetch_weather_data('Delhi')
+            self.assertIsNotNone(data)
+            self.assertEqual(data['weather'][0]['main'], 'Clear')
+
+    def test_temperature_conversion(self):
+        # Test temperature conversion from Kelvin to Celsius
+        kelvin_temp = 300
+        celsius_temp = kelvin_temp - 273.15
+        self.assertAlmostEqual(celsius_temp, 26.85, places=2)
 
     def test_get_daily_summary(self):
         # Mock data

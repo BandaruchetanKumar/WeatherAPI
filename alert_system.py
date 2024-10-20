@@ -8,7 +8,7 @@ import config
 def get_latest_weather_data():
     client = MongoClient(config.MONGO_URI)
     db = client[config.DB_NAME]
-    collection = db['Hello']
+    collection = db['weather_data']
 
     pipeline = [
         {'$sort': {'dt': -1}},
@@ -25,9 +25,19 @@ def get_latest_weather_data():
 
 def check_alerts(data):
     alerts = []
+    consecutive_alerts = {}
     for city_data in data:
-        if city_data['temp'] > config.TEMP_THRESHOLD:
-            alerts.append(f"Alert: {city_data['city']} temperature ({city_data['temp']}°C) exceeds {config.TEMP_THRESHOLD}°C")
+        city = city_data['city']
+        temp = city_data['temp']
+        if city not in consecutive_alerts:
+            consecutive_alerts[city] = 0
+        if temp > config.TEMP_THRESHOLD:
+            consecutive_alerts[city] += 1
+            if consecutive_alerts[city] >= config.CONSECUTIVE_ALERTS:
+                alerts.append(f"Alert: {city} temperature ({temp}°C) exceeds {config.TEMP_THRESHOLD}°C for {config.CONSECUTIVE_ALERTS} consecutive updates")
+                consecutive_alerts[city] = 0  # Reset counter after alert
+        else:
+            consecutive_alerts[city] = 0  # Reset counter if temperature is below threshold
     return alerts
 
 def send_email(subject, body):
