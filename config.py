@@ -4,8 +4,8 @@ API_KEY = 'c58dd38a02712c6285ab806d0043d670'
 BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
 
 # MongoDB configuration
-MONGO_URI = 'mongodb://localhost:27017/'
-DB_NAME = 'weather_monitoring'
+MONGO_URI = 'mongodb+srv://Hello:NAjILWe6evsp7QP8@cluster0.s2q4o.mongodb.net/'
+DB_NAME = 'Hello'
 
 # List of Indian metros
 CITIES = ['Delhi', 'Mumbai', 'Chennai', 'Bangalore', 'Kolkata', 'Hyderabad']

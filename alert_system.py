@@ -8,7 +8,7 @@ import config
 def get_latest_weather_data():
     client = MongoClient(config.MONGO_URI)
     db = client[config.DB_NAME]
-    collection = db['weather_data']
+    collection = db['Hello']
 
     pipeline = [
         {'$sort': {'dt': -1}},
