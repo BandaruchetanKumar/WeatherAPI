@@ -1,31 +1,42 @@
-
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 import config
 
+def convert_date(date_obj):
+    """Convert a datetime.date to datetime.datetime."""
+    return datetime.combine(date_obj, datetime.min.time())
+
 def get_data_for_visualization(days=7):
-    client = MongoClient(config.MONGO_URI)
-    db = client[config.DB_NAME]
-    collection = db['daily_summaries']
+    # Use context manager to ensure MongoClient is properly closed
+    with MongoClient(config.MONGO_URI) as client:
+        db = client[config.DB_NAME]
+        collection = db['daily_summaries']
 
-    end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=days)
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=days)
 
-    pipeline = [
-        {
-            '$match': {
-                'date': {'$gte': start_date, '$lte': end_date}
+        # Convert dates to datetime for MongoDB query
+        start_date = convert_date(start_date)
+        end_date = convert_date(end_date)
+
+        pipeline = [
+            {
+                '$match': {
+                    'date': {'$gte': start_date, '$lte': end_date}
+                }
+            },
+            {
+                '$sort': {'date': 1}
             }
-        },
-        {
-            '$sort': {'date': 1}
-        }
-    ]
+        ]
 
-    results = list(collection.aggregate(pipeline))
-    client.close()
-    return results
+        try:
+            results = list(collection.aggregate(pipeline))
+            return results
+        except Exception as e:
+            print(f"Error retrieving data: {e}")
+            return []
 
 def plot_temperature_trends(data):
     for city in config.CITIES:
@@ -68,9 +79,12 @@ def plot_weather_conditions(data):
 
 def generate_visualizations():
     data = get_data_for_visualization()
-    plot_temperature_trends(data)
-    plot_weather_conditions(data)
-    print("Visualizations generated successfully.")
+    if data:  # Check if data is not empty
+        plot_temperature_trends(data)
+        plot_weather_conditions(data)
+        print("Visualizations generated successfully.")
+    else:
+        print("No data available for visualizations.")
 
 if __name__ == "__main__":
     generate_visualizations()
